@@ -1,0 +1,7 @@
+{
+  "name": "HeadBall AI - Face & Motion Arcade",
+  "description": "Futuristic webcam-controlled arcade game where players navigate a rolling ball using head tilt, head turns, and facial expressions.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

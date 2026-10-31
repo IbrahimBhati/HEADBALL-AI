@@ -1,0 +1,142 @@
+/* ==========================================================================
+   HEADBALL AI - Responsive & Viewport Adjustments
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .hud-stat-cluster, .hud-score-cluster {
+    gap: 1.25rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .hud-value {
+    font-size: 1.45rem;
+  }
+
+  .hud-center-top {
+    gap: 0.8rem;
+  }
+
+  .camera-pip-widget {
+    width: 140px;
+    height: 105px;
+  }
+
+  .boost-meter-container {
+    width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .screen {
+    padding: 1rem;
+  }
+
+  .glass-panel {
+    padding: 1.5rem !important;
+  }
+
+  .game-hud {
+    padding: 0.8rem 1rem;
+  }
+
+  .hud-top-bar {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .hud-score-cluster {
+    gap: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .hud-label {
+    font-size: 0.6rem;
+  }
+
+  .hud-value {
+    font-size: 1.25rem;
+  }
+
+  .hud-coins-value {
+    font-size: 1.15rem;
+  }
+
+  .hud-level-num {
+    font-size: 1.05rem;
+  }
+
+  .camera-pip-widget {
+    width: 100px;
+    height: 75px;
+  }
+
+  .boost-meter-container {
+    width: 140px;
+  }
+
+  .gesture-cues-ribbon {
+    display: none; /* Keep game canvas uncluttered on mobile */
+  }
+
+  .hero-ball-stage {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 1rem;
+  }
+
+  .hero-ball-wrapper {
+    width: 90px;
+    height: 90px;
+  }
+
+  .btn-play-hero {
+    padding: 0.9rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  .highscore-banner {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .instructions-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.8rem !important;
+  }
+
+  .calibration-viewport {
+    flex-direction: column !important;
+  }
+
+  .camera-card {
+    height: 240px;
+  }
+}
+
+@media (max-height: 640px) {
+  .screen {
+    padding: 0.6rem;
+  }
+
+  .hero-ball-stage {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-ball-wrapper {
+    width: 75px;
+    height: 75px;
+  }
+
+  .highscore-banner {
+    margin: 0.8rem 0;
+    padding: 0.6rem;
+  }
+
+  .modal-content {
+    max-height: 92vh;
+    padding: 1.5rem;
+  }
+}
