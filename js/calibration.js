@@ -292,6 +292,7 @@ export class CalibrationManager {
       // STEP 7: Display a successful calibration screen
       // -------------------------------------------------------------
       case CALIBRATION_STEPS.STEP_7_SUCCESS: {
+        this.isActive = false;
         return {
           step: 7,
           progress: 1.0,
@@ -359,6 +360,7 @@ export class CalibrationManager {
     };
 
     StorageManager.saveCalibration(this.calibrationData);
+    this.isActive = false;
 
     if (this.onCompleteCallback) {
       this.onCompleteCallback(this.calibrationData);

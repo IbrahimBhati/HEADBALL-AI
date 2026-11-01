@@ -55,6 +55,9 @@
     <link rel="stylesheet" href="/css/responsive.css" />
   </head>
   <body>
+    <!-- Always-active master video pipeline for uninterrupted 60fps AI face tracking across all screens -->
+    <video id="headball-master-video" autoplay playsinline muted style="position: fixed; top: 0; left: 0; width: 4px; height: 4px; opacity: 0.01; pointer-events: none; z-index: -9999;"></video>
+
     <div id="app">
       <!-- ====================================================================
            1. LANDING SCREEN
@@ -488,6 +491,19 @@
                 <span id="summary-deadzone" class="highscore-val" style="font-size: 1rem; color: #38bdf8;">3.5°</span>
               </div>
             </div>
+
+            <!-- Auto-launch Countdown Container (Unmistakable CTA) -->
+            <div id="calib-autolaunch-container" style="margin-top: 1.25rem; text-align: center; background: rgba(0, 243, 255, 0.08); border: 1px solid var(--border-bright); border-radius: var(--radius-md); padding: 1.2rem;">
+              <p style="font-size: 1.05rem; color: #ffffff; font-weight: 800; font-family: var(--font-display); letter-spacing: 0.06em; margin-bottom: 0.5rem;">
+                STARTING GAME IN <span id="calib-countdown-num" style="color: var(--cyan-primary); font-size: 1.6rem; font-family: var(--font-mono);">3</span> SECONDS...
+              </p>
+              <div style="height: 8px; background: rgba(255, 255, 255, 0.12); border-radius: 4px; overflow: hidden; max-width: 380px; margin: 0 auto 1rem;">
+                <div id="calib-autolaunch-fill" style="width: 100%; height: 100%; background: linear-gradient(90deg, #10b981, #00f3ff); transition: width 0.1s linear;"></div>
+              </div>
+              <button id="btn-quick-launch" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #00f3ff 100%); padding: 0.9rem 3rem; font-size: 1.1rem; font-weight: 800; box-shadow: 0 0 30px rgba(0, 243, 255, 0.45); cursor: pointer;">
+                LAUNCH GAME NOW (SPACE / ENTER) →
+              </button>
+            </div>
           </div>
 
           <!-- Bottom Action Buttons -->
@@ -828,6 +844,10 @@
             <div>
               <span class="hud-label">DISTANCE TRAVELED</span>
               <div id="go-final-distance" class="tabular-nums" style="font-size: 1.4rem; font-weight: 800; color: #ffffff;">0m</div>
+            </div>
+            <div style="grid-column: span 2; padding-top: 0.4rem; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
+              <span class="hud-label">SECTOR REACHED</span>
+              <span id="go-final-level" style="font-weight: 800; font-family: var(--font-display); color: var(--cyan-primary);">ZONE 1</span>
             </div>
           </div>
 

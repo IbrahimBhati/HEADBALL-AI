@@ -107,6 +107,10 @@ export class UIManager {
       btnSkip: document.getElementById('btn-skip-calibration'),
       btnRecalibrate: document.getElementById('btn-recalibrate'),
       btnLaunch: document.getElementById('btn-launch-from-calib'),
+      btnQuickLaunch: document.getElementById('btn-quick-launch'),
+      autolaunchContainer: document.getElementById('calib-autolaunch-container'),
+      countdownNum: document.getElementById('calib-countdown-num'),
+      autolaunchFill: document.getElementById('calib-autolaunch-fill'),
       summaryNeutral: document.getElementById('summary-neutral'),
       summaryLeftTilt: document.getElementById('summary-left-tilt'),
       summaryRightTilt: document.getElementById('summary-right-tilt'),
@@ -568,6 +572,15 @@ export class UIManager {
     if (this.calib.summaryRightTilt) this.calib.summaryRightTilt.textContent = `+${summary.rightTiltMax || '12.0°'}`;
     if (this.calib.summaryJumpThresh) this.calib.summaryJumpThresh.textContent = summary.browJumpThresh || '0.25';
     if (this.calib.summaryDeadzone) this.calib.summaryDeadzone.textContent = summary.deadzone || '3.5°';
+  }
+
+  updateAutoLaunchCountdown(secondsRemaining, percent) {
+    if (this.calib.countdownNum) {
+      this.calib.countdownNum.textContent = Math.ceil(secondsRemaining);
+    }
+    if (this.calib.autolaunchFill) {
+      this.calib.autolaunchFill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+    }
   }
 
   toggleDiagnosticPanel() {

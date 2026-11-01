@@ -58,6 +58,7 @@ class HeadBallApp {
 
     this.isTrackingLoopRunning = false;
     this.isTabHidden = false;
+    this.calibCountdownInterval = null;
   }
 
   async init() {
@@ -176,11 +177,13 @@ class HeadBallApp {
 
     document.getElementById('btn-skip-to-keyboard')?.addEventListener('click', () => {
       this.audio.playClick();
+      this.stopCameraSession();
       this._launchGameplay(true); // keyboard mode
     });
 
     document.getElementById('btn-camera-back')?.addEventListener('click', () => {
       this.audio.playClick();
+      this.stopCameraSession();
       this.ui.showScreen('landing');
     });
 
@@ -202,11 +205,17 @@ class HeadBallApp {
       this._launchGameplay(false);
     });
 
+    this.ui.calib.btnQuickLaunch?.addEventListener('click', () => {
+      this.audio.playClick();
+      this._launchGameplay(false);
+    });
+
     this.ui.calib.btnSkip?.addEventListener('click', () => {
       this.audio.playClick();
       const calib = this.calibration.useDefaults();
       this.ui.showCalibrationSuccess(this.calibration.getSummary());
       this.ui.updateCalibrationStep(7, this.calibration.getStepMeta(7));
+      this._startAutoLaunchCountdown();
     });
 
     // =========================================================================
@@ -274,6 +283,7 @@ class HeadBallApp {
       this.game.state = GAME_STATES.TITLE;
       this.game.audio.stopBgm();
       this.game.audio.updateRollingHum(0, false);
+      this.stopCameraSession();
       this.ui.showScreen('landing');
       this._updateLandingScores();
     });
@@ -289,6 +299,7 @@ class HeadBallApp {
       this.audio.playClick();
       this.ui.hideModal('gameOver');
       this.game.state = GAME_STATES.TITLE;
+      this.stopCameraSession();
       this.ui.showScreen('landing');
       this._updateLandingScores();
     });
@@ -441,22 +452,31 @@ class HeadBallApp {
   }
 
   async _startCameraAndModel() {
+    const masterVideo = document.getElementById('headball-master-video');
     const cameraCardVideo = document.getElementById('camera-card-video');
     const calibVideo = document.getElementById('calib-video');
     const pipVideo = document.getElementById('pip-video');
 
-    await this.camera.requestPermissionAndStart(cameraCardVideo || calibVideo);
+    // Use master video element which is permanently mounted and never gets display:none
+    await this.camera.requestPermissionAndStart(masterVideo || cameraCardVideo);
 
-    // Sync stream to calib and mini pip video as well
-    if (calibVideo && this.camera.stream) {
-      calibVideo.srcObject = this.camera.stream;
-      calibVideo.muted = true;
-      calibVideo.play().catch(() => {});
-    }
-    if (pipVideo && this.camera.stream) {
-      pipVideo.srcObject = this.camera.stream;
-      pipVideo.muted = true;
-      pipVideo.play().catch(() => {});
+    // Synchronize camera stream to preview elements
+    if (this.camera.stream) {
+      if (cameraCardVideo) {
+        cameraCardVideo.srcObject = this.camera.stream;
+        cameraCardVideo.muted = true;
+        cameraCardVideo.play().catch(() => {});
+      }
+      if (calibVideo) {
+        calibVideo.srcObject = this.camera.stream;
+        calibVideo.muted = true;
+        calibVideo.play().catch(() => {});
+      }
+      if (pipVideo) {
+        pipVideo.srcObject = this.camera.stream;
+        pipVideo.muted = true;
+        pipVideo.play().catch(() => {});
+      }
     }
 
     await this.tracker.init();
@@ -468,6 +488,11 @@ class HeadBallApp {
   }
 
   _startInteractiveCalibration() {
+    if (this.calibCountdownInterval) {
+      clearInterval(this.calibCountdownInterval);
+      this.calibCountdownInterval = null;
+    }
+
     this.calibration.startWorkflow({
       onStepChange: (step, meta) => {
         this.ui.updateCalibrationStep(step, meta);
@@ -478,17 +503,59 @@ class HeadBallApp {
       },
       onComplete: (summary) => {
         this.audio.playOrbPickup(6);
+        this.calibration.isActive = false;
         this.ui.showCalibrationSuccess(this.calibration.getSummary());
         this.ui.updateCalibrationStep(7, this.calibration.getStepMeta(7));
+        this._startAutoLaunchCountdown();
       }
     });
   }
 
+  _startAutoLaunchCountdown() {
+    if (this.calibCountdownInterval) {
+      clearInterval(this.calibCountdownInterval);
+      this.calibCountdownInterval = null;
+    }
+
+    const totalSeconds = 3.0;
+    let remaining = totalSeconds;
+    this.ui.updateAutoLaunchCountdown(remaining, 100);
+
+    const stepMs = 100;
+    this.calibCountdownInterval = setInterval(() => {
+      remaining -= stepMs / 1000;
+      const pct = (remaining / totalSeconds) * 100;
+
+      if (remaining <= 0) {
+        clearInterval(this.calibCountdownInterval);
+        this.calibCountdownInterval = null;
+        this.audio.playCountdownBeep(true);
+        this._launchGameplay(false);
+      } else {
+        this.ui.updateAutoLaunchCountdown(remaining, pct);
+      }
+    }, stepMs);
+  }
+
   _launchGameplay(isKeyboardOnly = false) {
+    if (this.calibCountdownInterval) {
+      clearInterval(this.calibCountdownInterval);
+      this.calibCountdownInterval = null;
+    }
+    this.calibration.isActive = false;
+
     this.ui.hideAllModals();
     this.ui.showScreen('game');
     this.game.resize();
     this.game.startNewGame();
+
+    // Ensure PIP video continues playing smoothly in gameplay
+    const pipVideo = document.getElementById('pip-video');
+    if (pipVideo && this.camera.stream && pipVideo.srcObject !== this.camera.stream) {
+      pipVideo.srcObject = this.camera.stream;
+      pipVideo.muted = true;
+      pipVideo.play().catch(() => {});
+    }
 
     if (isKeyboardOnly) {
       this.settings.set('gestureControlsEnabled', false);
@@ -511,6 +578,26 @@ class HeadBallApp {
     }
   }
 
+  stopCameraSession() {
+    this.isTrackingLoopRunning = false;
+    if (this.calibCountdownInterval) {
+      clearInterval(this.calibCountdownInterval);
+      this.calibCountdownInterval = null;
+    }
+    this.camera.stopCamera();
+    this.gestureRecognizer.resetTriggers();
+    this.ui.setCameraStatus('AWAITING WEBCAM', false);
+
+    const masterVideo = document.getElementById('headball-master-video');
+    const cameraCardVideo = document.getElementById('camera-card-video');
+    const calibVideo = document.getElementById('calib-video');
+    const pipVideo = document.getElementById('pip-video');
+    if (masterVideo) masterVideo.srcObject = null;
+    if (cameraCardVideo) cameraCardVideo.srcObject = null;
+    if (calibVideo) calibVideo.srcObject = null;
+    if (pipVideo) pipVideo.srcObject = null;
+  }
+
   _startFaceTrackingLoop() {
     if (this.isTrackingLoopRunning) return;
     this.isTrackingLoopRunning = true;
@@ -518,6 +605,9 @@ class HeadBallApp {
     const cameraCardCanvas = document.getElementById('camera-card-canvas');
 
     const processFrame = () => {
+      if (!this.isTrackingLoopRunning) {
+        return;
+      }
       if (this.isTabHidden) {
         requestAnimationFrame(processFrame);
         return;
@@ -643,6 +733,15 @@ class HeadBallApp {
     if (this.game.state === GAME_STATES.TITLE && (e.code === 'Enter' || e.code === 'Space')) {
       this._handlePlayFlow();
       return;
+    }
+
+    // Space or Enter on Calibration screen after calibration is complete
+    if (this.ui.currentScreen === 'calibration' && (e.code === 'Enter' || e.code === 'Space')) {
+      if (this.calibration.currentStep === CALIBRATION_STEPS.STEP_7_SUCCESS || !this.calibration.isActive) {
+        e.preventDefault();
+        this._launchGameplay(false);
+        return;
+      }
     }
 
     if (this.game.state !== GAME_STATES.PLAYING) return;
